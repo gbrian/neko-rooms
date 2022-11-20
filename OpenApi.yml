@@ -350,6 +350,38 @@ components:
           type: number
           description: in bytes
 
+    RoomConstrains:
+      type: object
+      properties:
+        time_to_live:
+          $ref: '#/components/schemas/TimeToLiveConstrain'
+        empty_room:
+          $ref: '#/components/schemas/EmptyRoomConstrain'
+        
+    TimeToLiveConstrain:
+      type: object
+      description: Defines the max amount of running time allowed for a container and an action
+      properties:
+        time_to_live:
+          type: number
+          description: Max time to live in minutes
+        action:
+          type: string
+          description: Action to execute
+          default: stop
+
+    EmptyRoomConstrain:
+      type: object
+      description: Defines the action to take when there are no members left in the room
+      properties:
+        threshold_time:
+          type: number
+          description: Time to wait in minutes before taking the action.
+        action:
+          type: string
+          description: Action to execute
+          default: stop
+
     RoomSettings:
       type: object
       properties:
@@ -413,6 +445,8 @@ components:
           $ref: '#/components/schemas/RoomResources'
         browser_policy:
           $ref: '#/components/schemas/BrowserPolicy'
+        constains:
+          $ref: '#/components/schemas/RoomConstrains'
 
     RoomStats:
       type: object

@@ -94,6 +94,23 @@ type RoomSettings struct {
 	Resources RoomResources     `json:"resources"`
 
 	BrowserPolicy *BrowserPolicy `json:"browser_policy,omitempty"`
+
+	RoomConstrains *RoomConstrains `json:"constains,omitempty"`
+}
+
+type TimeToLiveConstrain struct {
+	TimeToLive 	int64 `json:"time_to_live"`
+	Action  	string `json:"action"`
+}
+
+type EmptyRoomConstrain struct {
+	ThresholTime int64 `json:"threshold_time"`
+	Action  	 string `json:"action"`
+}
+
+type RoomConstrains struct {
+	TimeToLiveConstrain *TimeToLiveConstrain `json:"time_to_live,omitempty"`
+	EmptyRoomConstrain  *EmptyRoomConstrain  `json:"empty_room,omitempty"`
 }
 
 func (settings *RoomSettings) ToEnv() []string {
