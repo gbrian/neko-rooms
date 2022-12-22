@@ -108,32 +108,32 @@ func (manager *RoomManagerCtx) extractLabels(labels map[string]string) (*RoomLab
 		}
 	}
 
-	var constrainsLabels *ConstrainsLabels
-	constains_path := "m1k1o.neko_rooms.constrains"
-	if val, ok := labels[constains_path]; ok && val == "true" {
-		if time_to_live_time, ok := strconv.ParseUint(labels[constains_path + "time_to_live.time"], 10, 16); ok {
-			if time_to_live_action, ok := labels[constains_path + "time_to_live.action"]; !ok {
-				time_to_live_action = "stop"
-			}
-		}
+	// var constrainsLabels *ConstrainsLabels
+	// constains_path := "m1k1o.neko_rooms.constrains"
+	// if val, ok := labels[constains_path]; ok && val == "true" {
+	// 	if time_to_live_time, ok := strconv.ParseUint(labels[constains_path + "time_to_live.time"], 10, 16); ok {
+	// 		if time_to_live_action, ok := labels[constains_path + "time_to_live.action"]; !ok {
+	// 			time_to_live_action = "stop"
+	// 		}
+	// 	}
 
-		if (empty_room_threshold, ok := strconv.ParseUint(labels[constains_path + "empty_room.threshold"], 10, 16); ok {
-			if empty_room_action, ok := labels[constains_path + "empty_room.action"]; !ok {
-				empty_room_action = "stop"
-			}
-		}
+	// 	if empty_room_threshold, ok := strconv.ParseUint(labels[constains_path + "empty_room.threshold"], 10, 16); ok {
+	// 		if empty_room_action, ok := labels[constains_path + "empty_room.action"]; !ok {
+	// 			empty_room_action = "stop"
+	// 		}
+	// 	}
 
-		constrainsLabels = &ConstrainsLabels{
-			TimeToLiveConstrain: &types.TimeToLiveConstrain{
-				TimeToLive: ,
-				Action: time_to_live_action,
-			},
-			EmptyRoomConstrain: &types.EmptyRoomConstrain{
-				ThresholTime: empty_room_threshold,
-				Action: empty_room_action,
-			},
-		}
-	}
+	// 	constrainsLabels = &ConstrainsLabels{
+	// 		TimeToLiveConstrain: &types.TimeToLiveConstrain{
+	// 			TimeToLive: time_to_live_time,
+	// 			Action: time_to_live_action,
+	// 		},
+	// 		EmptyRoomConstrain: &types.EmptyRoomConstrain{
+	// 			ThresholTime: empty_room_threshold,
+	// 			Action: empty_room_action,
+	// 		},
+	// 	}
+	// }
 
 	return &RoomLabels{
 		Name:      name,
@@ -143,7 +143,7 @@ func (manager *RoomManagerCtx) extractLabels(labels map[string]string) (*RoomLab
 		Epr:       epr,
 
 		BrowserPolicy: browserPolicy,
-		ConstrainsLabelss: ConstrainsLabelss,
+		// ConstrainsLabelss: ConstrainsLabelss,
 	}, nil
 }
 
@@ -168,19 +168,19 @@ func (manager *RoomManagerCtx) serializeLabels(labels RoomLabels) map[string]str
 		labelsMap["m1k1o.neko_rooms.browser_policy.path"] = labels.BrowserPolicy.Path
 	}
 
-	if labels.ConstrainsLabels != nil {
-		constains_path := "m1k1o.neko_rooms.constrains"
-		labelsMap[constains_path] = "true"
+	// if labels.ConstrainsLabels != nil {
+	// 	constains_path := "m1k1o.neko_rooms.constrains"
+	// 	labelsMap[constains_path] = "true"
 
-		if labels.ConstrainsLabelss.TimeToLiveConstrain.TimeToLive != nil {
-			labelsMap[constains_path + "time_to_live.time"] = string(labels.ConstrainsLabelss.TimeToLiveConstrain.TimeToLive)
-			labelsMap[constains_path + "time_to_live.action"] = string(labels.ConstrainsLabelss.TimeToLiveConstrain.Action)
-		}
-		if labels.ConstrainsLabelss.EmptyConstrainsLabels.EmptyConstrainsLabels != nil {
-			labelsMap[constains_path + "empty_room.threshold"] = string(labels.ConstrainsLabelss.EmptyConstrainsLabels.Threshold)
-			labelsMap[constains_path + "empty_room.action"] = string(labels.ConstrainsLabelss.EmptyConstrainsLabels.Action)
-		}
-	}	
+	// 	if labels.ConstrainsLabelss.TimeToLiveConstrain.TimeToLive != nil {
+	// 		labelsMap[constains_path + "time_to_live.time"] = string(labels.ConstrainsLabelss.TimeToLiveConstrain.TimeToLive)
+	// 		labelsMap[constains_path + "time_to_live.action"] = string(labels.ConstrainsLabelss.TimeToLiveConstrain.Action)
+	// 	}
+	// 	if labels.ConstrainsLabelss.EmptyConstrainsLabels.EmptyConstrainsLabels != nil {
+	// 		labelsMap[constains_path + "empty_room.threshold"] = string(labels.ConstrainsLabelss.EmptyConstrainsLabels.Threshold)
+	// 		labelsMap[constains_path + "empty_room.action"] = string(labels.ConstrainsLabelss.EmptyConstrainsLabels.Action)
+	// 	}
+	// }	
 
 	return labelsMap
 }
