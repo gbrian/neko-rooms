@@ -35,6 +35,11 @@ ENV DOCKER_API_VERSION=1.39
 ENV NEKO_ROOMS_BIND=:8080
 ENV NEKO_ROOMS_ADMIN_STATIC=/var/www
 
+# RCLONE
+RUN apt update
+RUN apt install -y unzip
+RUN curl https://rclone.org/install.sh | bash
+
 EXPOSE 8080
 
 ENTRYPOINT [ "/app/bin/neko_rooms" ]
