@@ -104,6 +104,17 @@ type PortSettings struct {
 }
 
 func (settings *RoomSettings) ToEnv(config *config.Room, ports PortSettings) []string {
+type SnapshotRequest struct {
+	NekoImage    string `json:"neko_image"`
+	RegistryUser string `json:"registry_user"`
+	RegistryPass string `json:"registry_pass"`
+}
+
+type SnapshotResponse struct {
+	NekoImage    string `json:"neko_image"`
+}
+
+func (settings *RoomSettings) ToEnv() []string {
 	env := []string{
 		fmt.Sprintf("NEKO_BIND=:%d", ports.FrontendPort),
 		"NEKO_ICELITE=true",
@@ -290,4 +301,6 @@ type RoomManager interface {
 	Start(id string) error
 	Stop(id string) error
 	Restart(id string) error
+	Snapshot(id string, settings SnapshotRequest) (error)
+	ImagePush(settings SnapshotRequest) (error)
 }
