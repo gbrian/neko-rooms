@@ -10,9 +10,11 @@ import (
 	"github.com/docker/docker/api/types/filters"
 
 	"github.com/m1k1o/neko-rooms/internal/types"
+
+	"github.com/KyleBanks/dockerstats"
 )
 
-func (manager *RoomManagerCtx) containerToEntry(container dockerTypes.Container) (*types.RoomEntry, error) {
+func (manager *RoomManagerCtx) containerToEntry(container dockerTypes.Container, stat dockerstats.Stats) (*types.RoomEntry, error) {
 	labels, err := manager.extractLabels(container.Labels)
 	if err != nil {
 		return nil, err
@@ -28,6 +30,8 @@ func (manager *RoomManagerCtx) containerToEntry(container dockerTypes.Container)
 		Running:        container.State == "running",
 		Status:         container.Status,
 		Created:        time.Unix(container.Created, 0),
+		CPU:						stat.CPU,
+		MEM:						stat.Memory.Raw,
 	}
 
 	if labels.Mux {

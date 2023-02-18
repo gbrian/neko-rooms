@@ -337,6 +337,12 @@ components:
           type: string
           format: datetime
           example: "2021-03-07T21:56:34Z"
+        cpu:
+          type: number
+          example: 20
+        mem:
+          type: number
+          example: 7.28
 
     RoomMount:
       type: object
