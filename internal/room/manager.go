@@ -3,8 +3,8 @@ package room
 import (
 	"bytes"
 	"context"
-	"encoding/csv"
 	"encoding/base64"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"os"

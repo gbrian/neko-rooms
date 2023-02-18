@@ -100,12 +100,6 @@ type RoomSettings struct {
 	BrowserPolicy *BrowserPolicy `json:"browser_policy,omitempty"`
 }
 
-type PortSettings struct {
-	FrontendPort   uint16
-	EprMin, EprMax uint16
-}
-
-func (settings *RoomSettings) ToEnv(config *config.Room, ports PortSettings) []string {
 type SnapshotRequest struct {
 	NekoImage    string `json:"neko_image"`
 	RegistryUser string `json:"registry_user"`
@@ -116,7 +110,12 @@ type SnapshotResponse struct {
 	NekoImage    string `json:"neko_image"`
 }
 
-func (settings *RoomSettings) ToEnv() []string {
+type PortSettings struct {
+	FrontendPort   uint16
+	EprMin, EprMax uint16
+}
+
+func (settings *RoomSettings) ToEnv(config *config.Room, ports PortSettings) []string {
 	env := []string{
 		fmt.Sprintf("NEKO_BIND=:%d", ports.FrontendPort),
 		"NEKO_ICELITE=true",
