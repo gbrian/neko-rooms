@@ -27,6 +27,8 @@ import (
 	"github.com/m1k1o/neko-rooms/internal/policies"
 	"github.com/m1k1o/neko-rooms/internal/types"
 	"github.com/m1k1o/neko-rooms/internal/utils"
+
+	"github.com/KyleBanks/dockerstats"
 )
 
 const (
@@ -68,13 +70,21 @@ func (manager *RoomManagerCtx) List() ([]types.RoomEntry, error) {
 		return nil, err
 	}
 
+	stats, _ := dockerstats.Current()
+	statsConfig := map[string]dockerstats.Stats{}
+	if err == nil {
+		for _, v := range stats {
+			statsConfig[v.Container] = v
+	 	}	 
+	}
+
 	result := []types.RoomEntry{}
 	for _, container := range containers {
-		entry, err := manager.containerToEntry(container)
+		stat := statsConfig[container.ID]
+		entry, err := manager.containerToEntry(container, stat)
 		if err != nil {
 			return nil, err
 		}
-
 		result = append(result, *entry)
 	}
 
@@ -87,7 +97,15 @@ func (manager *RoomManagerCtx) FindByName(name string) (*types.RoomEntry, error)
 		return nil, err
 	}
 
-	return manager.containerToEntry(*container)
+	stat := dockerstats.Stats{
+		CPU: "0",
+		Memory: dockerstats.MemoryStats {
+			Raw: "error",
+			Percent: "0",
+		},
+	}
+
+	return manager.containerToEntry(*container, stat)
 }
 
 func (manager *RoomManagerCtx) Create(settings types.RoomSettings) (string, error) {
@@ -480,8 +498,15 @@ func (manager *RoomManagerCtx) GetEntry(id string) (*types.RoomEntry, error) {
 	if err != nil {
 		return nil, err
 	}
+	stat := dockerstats.Stats{
+		CPU: "0",
+		Memory: dockerstats.MemoryStats {
+			Raw: "error",
+			Percent: "0",
+		},
+	}
 
-	return manager.containerToEntry(*container)
+	return manager.containerToEntry(*container, stat)
 }
 
 func (manager *RoomManagerCtx) Remove(id string) error {

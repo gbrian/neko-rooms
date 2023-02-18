@@ -43,6 +43,8 @@ type RoomEntry struct {
 	Running        bool      `json:"running"`
 	Status         string    `json:"status"`
 	Created        time.Time `json:"created"`
+	CPU        		 string 	 `json:"cpu"`
+	MEM        		 string 	 `json:"mem"`
 }
 
 type MountType string
