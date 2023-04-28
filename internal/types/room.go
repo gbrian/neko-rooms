@@ -13,6 +13,7 @@ import (
 var blacklistedEnvs = []string{
 	// ignore bunch of default envs
 	"DEBIAN_FRONTEND",
+	"PULSE_SERVER",
 	"DISPLAY",
 	"USER",
 	"PATH",
@@ -68,6 +69,7 @@ type RoomResources struct {
 	ShmSize   int64    `json:"shm_size"`   // in bytes
 	Memory    int64    `json:"memory"`     // in bytes
 	Gpus      []string `json:"gpus"`       // gpu opts
+	Devices   []string `json:"devices"`
 }
 
 type RoomSettings struct {

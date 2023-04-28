@@ -249,16 +249,8 @@
           </v-row>
           <v-row align="center" no-gutters class="my-3">
               <h2> Mounts </h2>
-              <v-btn :disabled="!storageEnabled" @click="data.mounts = [ ...data.mounts, { type: 'private', host_path: '', container_path: '' }]" icon color="green"><v-icon>mdi-plus</v-icon></v-btn>
+              <v-btn @click="data.mounts = [ ...data.mounts, { type: storageEnabled ? 'private' : 'public', host_path: '', container_path: '' }]" icon color="green"><v-icon>mdi-plus</v-icon></v-btn>
           </v-row>
-          <v-alert
-            border="left"
-            type="warning"
-            v-if="!storageEnabled"
-          >
-            <p><strong>Not available!</strong></p>
-            <p class="mb-0">Mounts are not available, because storage is not enabled.</p>
-          </v-alert>
           <v-row align="center" class="mb-2" v-for="({ type, host_path, container_path }, index) in data.mounts" :key="index">
             <v-col class="py-0" cols="2">
               <v-select
@@ -292,9 +284,20 @@
             </div>
           </v-row>
           <v-row align="center" no-gutters v-if="data.mounts.length > 0">
+            <v-alert
+              border="left"
+              type="warning"
+              v-if="!storageEnabled"
+              style="width: 100%"
+            >
+              <p><strong>Not all mount types are available!</strong></p>
+              <p class="mb-0">Private and Template mounts are not available, because storage is not enabled.</p>
+            </v-alert>
             <p>
-              <strong>Private</strong>: Host path is relative to <code class="mx-1">&lt;storage path&gt;/rooms/&lt;room name&gt;/</code>. <br />
-              <strong>Template</strong>: Host path is relative to <code class="mx-1">&lt;storage path&gt;/templates/</code>, and will be readonly. <br />
+              <span :style="{ opacity: !storageEnabled ? 0.25 : 1 }">
+                <strong>Private</strong>: Host path is relative to <code class="mx-1">&lt;storage path&gt;/rooms/&lt;room name&gt;/</code>. <br />
+                <strong>Template</strong>: Host path is relative to <code class="mx-1">&lt;storage path&gt;/templates/</code>, and will be readonly. <br />
+              </span>
               <strong>Protected</strong>: Host path must be whitelisted in config and exists on the host, will be readonly. <br />
               <strong>Public</strong>: Host path must be whitelisted in config and exists on the host.
             </p>
@@ -351,6 +354,7 @@
                 :max="20*1e9"
                 :step="0.2*1e9"
                 color="blue"
+                hide-details
               >
                 <template v-slot:thumb-label="{ value }">
                   <span v-if="value">{{ value | memory }}</span>
@@ -361,9 +365,40 @@
             <v-col>
               <v-checkbox
                 @change="$set(data.resources, 'gpus', $event ? ['all'] : [])"
-                label="Enable GPU support"
+                label="Enable Nvidia GPU support"
+                hide-details
                 class="shrink ml-2 mt-0"
               ></v-checkbox>
+            <div style="margin-left: 41px;"><i>Nvidia docker runtime is required.</i></div>
+            </v-col>
+          </v-row>
+          <v-row align="center">
+            <v-col class="pt-0">
+              <v-combobox class="pt-0"
+                label="Devices"
+                v-model="data.resources.devices"
+                :items="[ '/dev/dri/renderD128' ]"
+                multiple
+              >
+                <template v-slot:selection="{ attrs, item, parent, selected }">
+                  <v-chip
+                    v-bind="attrs"
+                    :input-value="selected"
+                    label
+                    small
+                  >
+                    <span class="pr-2">
+                      {{ item }}
+                    </span>
+                    <v-icon
+                      small
+                      @click="parent.selectItem(item)"
+                    >
+                      $delete
+                    </v-icon>
+                  </v-chip>
+                </template>
+              </v-combobox>
             </v-col>
           </v-row>
         </template>
@@ -549,14 +584,16 @@ export default class RoomsCreate extends Vue {
 
   get mountTypes() {
     return [
-      {
-        text: 'Private',
-        value: 'private',
-      },
-      {
-        text: 'Template',
-        value: 'template',
-      },
+      ...(this.storageEnabled ? [
+        {
+          text: 'Private',
+          value: 'private',
+        },
+        {
+          text: 'Template',
+          value: 'template',
+        },
+      ] : []),
       {
         text: 'Protected',
         value: 'protected',
@@ -571,8 +608,14 @@ export default class RoomsCreate extends Vue {
   get browserPolicyConfig() {
     const nekoImage = this.data.neko_image
     if (!nekoImage) return undefined
-  
-    return this.$store.state.browserPolicyConfig.find(({ images }: { images: string[] }): boolean => images.includes(nekoImage))
+
+    return this.$store.state.browserPolicyConfig.find(
+      // find browser policy config for this image
+      ({ images }: { images: string[] }): boolean => images.some(
+        // if nekoImage includes the image name
+        (image: string): boolean => nekoImage.includes(image)
+      )
+    )
   }
 
   get browserPolicyExtensions() {

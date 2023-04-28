@@ -120,7 +120,7 @@ func (manager *RoomManagerCtx) Create(settings types.RoomSettings) (string, erro
 	}
 
 	if !utils.IsValidImage(settings.NekoImage, manager.config.NekoImages) {
-		return "", fmt.Errorf("invalid neko image: %q. valid are: %q", settings.NekoImage, manager.config.NekoImages)
+		return "", fmt.Errorf("invalid neko image")
 	}
 
 	isPrivilegedImage	:= utils.IsValidImage(settings.NekoImage, manager.config.NekoPrivilegedImages)
@@ -336,8 +336,12 @@ func (manager *RoomManagerCtx) Create(settings types.RoomSettings) (string, erro
 			return "", fmt.Errorf("mount paths must be absolute")
 		}
 
-		// private container's data
-		if mount.Type == types.MountPrivate {
+		switch mount.Type {
+		case types.MountPrivate:
+			if !manager.config.StorageEnabled {
+				return "", fmt.Errorf("private mounts cannot be specified, because storage is disabled or unavailable")
+			}
+
 			// ensure that target exists with correct permissions
 			internalPath := path.Join(manager.config.StorageInternal, privateStoragePath, roomName, hostPath)
 			if _, err := os.Stat(internalPath); os.IsNotExist(err) {
@@ -352,13 +356,17 @@ func (manager *RoomManagerCtx) Create(settings types.RoomSettings) (string, erro
 
 			// prefix host path
 			hostPath = path.Join(manager.config.StorageExternal, privateStoragePath, roomName, hostPath)
-		} else if mount.Type == types.MountTemplate {
+		case types.MountTemplate:
+			if !manager.config.StorageEnabled {
+				return "", fmt.Errorf("template mounts cannot be specified, because storage is disabled or unavailable")
+			}
+
 			// readonly template data
 			readOnly = true
 
 			// prefix host path
 			hostPath = path.Join(manager.config.StorageExternal, templateStoragePath, hostPath)
-		} else if mount.Type == types.MountProtected || mount.Type == types.MountPublic {
+		case types.MountProtected, types.MountPublic:
 			// readonly if mount type is protected
 			readOnly = mount.Type == types.MountProtected
 
@@ -374,7 +382,7 @@ func (manager *RoomManagerCtx) Create(settings types.RoomSettings) (string, erro
 			if !isAllowed {
 				return "", fmt.Errorf("mount path is not whitelisted in config")
 			}
-		} else {
+		default:
 			return "", fmt.Errorf("unknown mount type %q", mount.Type)
 		}
 
@@ -419,6 +427,19 @@ func (manager *RoomManagerCtx) Create(settings types.RoomSettings) (string, erro
 		}
 
 		deviceRequests = append(deviceRequests, gpuOpts.Value()...)
+	}
+
+	//
+	// Set container devices
+	//
+
+	var devices []container.DeviceMapping
+	for _, device := range settings.Resources.Devices {
+		devices = append(devices, container.DeviceMapping{
+			PathOnHost:        device,
+			PathInContainer:   device,
+			CgroupPermissions: "rwm",
+		})
 	}
 
 	//
@@ -467,6 +488,7 @@ func (manager *RoomManagerCtx) Create(settings types.RoomSettings) (string, erro
 			NanoCPUs:       settings.Resources.NanoCPUs,
 			Memory:         settings.Resources.Memory,
 			DeviceRequests: deviceRequests,
+			Devices:        devices,
 		},
 		// Privileged
 		Privileged: isPrivilegedImage,
@@ -637,12 +659,23 @@ func (manager *RoomManagerCtx) GetSettings(id string) (*types.RoomSettings, erro
 			}
 		}
 
+		devices := []string{}
+		for _, dev := range container.HostConfig.Devices {
+			// TODO: dev.CgroupPermissions
+			if dev.PathOnHost == dev.PathInContainer {
+				devices = append(devices, dev.PathOnHost)
+			} else {
+				devices = append(devices, fmt.Sprintf("%s:%s", dev.PathOnHost, dev.PathInContainer))
+			}
+		}
+
 		roomResources = types.RoomResources{
 			CPUShares: container.HostConfig.CPUShares,
 			NanoCPUs:  container.HostConfig.NanoCPUs,
 			ShmSize:   container.HostConfig.ShmSize,
 			Memory:    container.HostConfig.Memory,
 			Gpus:      gpus,
+			Devices:   devices,
 		}
 	}
 
